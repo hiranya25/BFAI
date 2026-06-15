@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: doc-intel-backend
+    env: python
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: VALIDATE_GEMINI_ON_STARTUP
+        value: "true"
+      - key: API_SECRET_KEY
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: MAX_UPLOAD_MB
+        value: "20"
+      - key: ALLOWED_ORIGINS
+        sync: false

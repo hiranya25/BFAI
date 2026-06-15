@@ -1,0 +1,64 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Length 1017 >>
+stream
+BT /F2 18 Tf 72 735 Td (Invoice INV-001) Tj ET
+BT /F1 12 Tf 72 708 Td (Billed To: Acme Corp) Tj ET
+BT /F1 12 Tf 72 686 Td (Status: unpaid) Tj ET
+72 640 m 532 640 l S
+72 606 m 532 606 l S
+72 572 m 532 572 l S
+72 538 m 532 538 l S
+72 504 m 532 504 l S
+72 640 m 72 504 l S
+232 640 m 232 504 l S
+332 640 m 332 504 l S
+432 640 m 432 504 l S
+532 640 m 532 504 l S
+BT /F2 11 Tf 80 617 Td (Item) Tj ET
+BT /F2 11 Tf 240 617 Td (Qty) Tj ET
+BT /F2 11 Tf 340 617 Td (Unit Price) Tj ET
+BT /F2 11 Tf 440 617 Td (Total) Tj ET
+BT /F1 11 Tf 80 583 Td (AI Consulting) Tj ET
+BT /F1 11 Tf 240 583 Td (1) Tj ET
+BT /F1 11 Tf 340 583 Td ($5,000) Tj ET
+BT /F1 11 Tf 440 583 Td ($5,000) Tj ET
+BT /F1 11 Tf 80 549 Td (Server Costs) Tj ET
+BT /F1 11 Tf 240 549 Td (1) Tj ET
+BT /F1 11 Tf 340 549 Td ($300) Tj ET
+BT /F1 11 Tf 440 549 Td ($300) Tj ET
+BT /F1 11 Tf 80 515 Td (Support) Tj ET
+BT /F1 11 Tf 240 515 Td (2) Tj ET
+BT /F1 11 Tf 340 515 Td ($250) Tj ET
+BT /F1 11 Tf 440 515 Td ($500) Tj ET
+BT /F2 13 Tf 72 460 Td (Grand Total: $5,800) Tj ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000321 00000 n 
+0000000396 00000 n 
+trailer << /Size 7 /Root 1 0 R >>
+startxref
+1465
+%%EOF

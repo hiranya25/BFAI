@@ -1,0 +1,42 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+backend/venv/
+backend/.env
+backend/data/*
+!backend/data/.gitkeep
+!backend/data/raw_docs/
+!backend/data/raw_docs/.gitkeep
+!backend/data/thumbnails/
+!backend/data/thumbnails/.gitkeep
+!backend/data/chroma_db/
+!backend/data/chroma_db/.gitkeep
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+*.tsbuildinfo
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*

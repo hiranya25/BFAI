@@ -1,0 +1,4 @@
+Support Notes
+The chatbot must answer only from uploaded documents.
+If the answer is not present, it should say the documents do not contain enough information.
+Voice input uses browser-native speech recognition for the assessment bonus.
