@@ -162,16 +162,12 @@ npm run dev
 
 ## 🌍 Production Deployment
 
-### Backend (Render / Railway)
-1. Set Root Directory to `backend`.
-2. Build Command: `pip install -r requirements.txt`
-3. Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-4. Environment Variables: Provide `GROQ_API_KEY`, `API_SECRET_KEY`, and `ENCRYPTION_KEY`.
-5. **Disk (Optional)**: If you use a paid Render tier, add a Persistent Disk mounted at `/opt/render/project/src/backend/data`. Without a persistent disk, uploaded vectors and thumbnails will be wiped on every deployment. (If using the Free tier, this option is hidden, but the system handles it gracefully by auto-indexing sample documents on startup).
+Detailed step-by-step instructions for deploying this project can be found in the [DEPLOY.md](./DEPLOY.md) file. 
 
-### Frontend (Vercel)
-1. Import repository to Vercel. Set Root Directory to `frontend`.
-2. Set Environment Variables:
-   - `NEXT_PUBLIC_API_URL` = `<your-deployed-backend-url>`
-   - `API_SECRET_KEY` = `<your-backend-secret>`
-3. Deploy. Update the Backend's `ALLOWED_ORIGINS` to include your new Vercel URL.
+### Backend Architecture (Hugging Face Spaces)
+The backend is deployed using **Hugging Face Spaces** (Docker SDK). 
+**Reasoning:** The backend utilizes heavy system-level libraries (OpenCV, PyMuPDF) and local AI models (`python-doctr`, `sentence-transformers`) that require substantial memory to run efficiently. Traditional free-tier platforms (like Render or Heroku) impose strict 512MB RAM limits, which would instantly OOM (Out Of Memory) crash during document parsing. Hugging Face Spaces generously provides 16GB of RAM and 2 vCPUs completely for free, making it the perfect environment for this AI-heavy workload.
+
+### Frontend Architecture (Vercel)
+The frontend is deployed using **Vercel**.
+**Reasoning:** Vercel is the creator of Next.js and provides the absolute best, zero-config hosting environment for Next.js applications, offering seamless CI/CD, edge routing, and optimal performance out of the box.
