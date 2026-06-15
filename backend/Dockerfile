@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     poppler-utils \
     libmagic1 \
+    build-essential \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
