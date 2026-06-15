@@ -167,7 +167,7 @@ npm run dev
 2. Build Command: `pip install -r requirements.txt`
 3. Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 4. Environment Variables: Provide `GROQ_API_KEY`, `API_SECRET_KEY`, and `ENCRYPTION_KEY`.
-5. **CRITICAL**: Attach a Persistent Disk to `/opt/render/project/src/backend/data`. Without this, uploaded documents and ChromaDB vectors will be erased on every deployment.
+5. **Disk (Optional)**: If you use a paid Render tier, add a Persistent Disk mounted at `/opt/render/project/src/backend/data`. Without a persistent disk, uploaded vectors and thumbnails will be wiped on every deployment. (If using the Free tier, this option is hidden, but the system handles it gracefully by auto-indexing sample documents on startup).
 
 ### Frontend (Vercel)
 1. Import repository to Vercel. Set Root Directory to `frontend`.

@@ -35,16 +35,10 @@ Since the backend requires system-level libraries for OpenCV, DocTR, and PyMuPDF
    - **Name:** `doc-intel-backend` (or whatever you prefer)
    - **Region:** Choose the region closest to you.
    - **Branch:** `main`
+   - **Environment / Language:** `Docker`
    - **Root Directory:** `backend` *(CRITICAL: Must be exactly this)*
-   - **Environment:** `Python 3`
-   - **Build Command:**
-     ```bash
-     apt-get update && apt-get install -y libgl1 libglib2.0-0 poppler-utils libmagic1 && pip install -r requirements.txt
-     ```
-   - **Start Command:**
-     ```bash
-     uvicorn app.main:app --host 0.0.0.0 --port $PORT
-     ```
+   - **Dockerfile Path:** `./Dockerfile` (or leave default if it auto-detects)
+   - *(You do not need a Build or Start command, Docker handles everything!)*
 
 5. **Set Environment Variables:**
    Click "Advanced" and add the following variables:
@@ -57,12 +51,12 @@ Since the backend requires system-level libraries for OpenCV, DocTR, and PyMuPDF
    - `MAX_UPLOAD_MB`: `20`
    - `ALLOWED_ORIGINS`: `*` *(We will tighten this later after deploying the frontend)*
 
-6. **Attach a Persistent Disk (CRITICAL):**
+6. **Attach a Persistent Disk (OPTIONAL - Paid Tiers Only):**
    - Click **Advanced** -> **Add Disk**
    - **Name:** `data`
    - **Mount Path:** `/opt/render/project/src/backend/data`
    - **Size:** `1 GB` (or more if needed)
-   - *Why? Render wipes the filesystem every time it deploys. If you don't mount a disk here, your ChromaDB vectors and uploaded documents will be permanently deleted every time the server restarts.*
+   - *Note: If you use the Free Tier, you will not see the Disk option. This is perfectly fine! The backend will simply re-index the sample documents automatically every time the server restarts.*
 
 7. Click **Create Web Service**. Wait 5-10 minutes for it to build and start.
 8. Once live, copy your backend URL (e.g., `https://doc-intel-backend.onrender.com`).
