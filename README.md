@@ -5,6 +5,9 @@
 This project is a full-stack, enterprise-grade Document Intelligence web application. It ingests complex, real-world documents (scanned PDFs, handwritten pages, and image-heavy reports with dense tables), classifies them, and powers an Agentic RAG chatbot that answers questions with exact, image-backed page citations. Security is implemented at every layer.
 
 ---
+## Demo Video
+
+https://github.com/user-attachments/assets/e0807dd6-47e9-44ce-9919-0348c5d9607f
 
 ## 🏗 Architecture Overview
 
