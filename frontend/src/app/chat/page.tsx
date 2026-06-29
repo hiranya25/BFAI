@@ -108,7 +108,7 @@ export default function ChatPage() {
                   {msg.role === "user" ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
                 </div>
 
-                <div className={`max-w-[80%] flex flex-col gap-2 ${msg.role === "user" ? "items-end" : "items-start"}`}>
+                <div className={`max-w-[90%] md:max-w-[80%] flex flex-col gap-2 ${msg.role === "user" ? "items-end" : "items-start"}`}>
                   <div className={`px-5 py-4 rounded-3xl shadow-sm ${
                     msg.role === "user" 
                       ? "bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white rounded-tr-sm" 
@@ -152,7 +152,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input Dock */}
-      <div className="p-6 relative z-10">
+      <div className="p-4 sm:p-6 relative z-10">
         <div className="max-w-3xl mx-auto relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-3xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
           <div className="relative flex items-end gap-3 bg-[#0B0F19] border border-white/10 p-2 rounded-3xl backdrop-blur-xl shadow-2xl">
@@ -191,7 +191,7 @@ export default function ChatPage() {
         {modalImage && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-center justify-center p-8"
+            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4 sm:p-8"
             onClick={() => setModalImage(null)}
           >
             <motion.img

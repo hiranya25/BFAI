@@ -169,7 +169,7 @@ export default function UploadPage() {
 
         <div
           {...getRootProps()}
-          className={`relative overflow-hidden border-2 border-dashed rounded-3xl p-16 text-center cursor-pointer transition-all duration-300
+          className={`relative overflow-hidden border-2 border-dashed rounded-3xl p-8 sm:p-16 text-center cursor-pointer transition-all duration-300
             ${isDragActive ? "border-indigo-500 bg-indigo-500/10" : "border-white/10 bg-white/[0.02] hover:bg-white/[0.05]"}`}
         >
           <input {...getInputProps()} />

@@ -66,7 +66,7 @@ export function DatabaseSidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           <motion.div
             initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="fixed right-0 top-0 h-full w-[400px] bg-[#0B0F19] border-l border-white/10 shadow-2xl z-50 flex flex-col"
+            className="fixed right-0 top-0 h-full w-full sm:w-[400px] bg-[#0B0F19] border-l border-white/10 shadow-2xl z-50 flex flex-col"
           >
             <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
               <div className="flex items-center gap-3">
