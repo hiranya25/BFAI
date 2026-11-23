@@ -19,9 +19,9 @@ The system is decoupled into a **Next.js (TypeScript)** frontend and a **FastAPI
   -> Security: MIME verification & Fernet Encryption at Rest
    -> Smart Routing Parser:
        • PyMuPDF (Digital PDFs, fast table/text extraction)
-       • Groq Llama 3.2 90B Vision (Scanned Images & Tables to Markdown)
+       • Vision LLM (Scanned Images & Tables to Markdown)
        • DocTR + LLM Post-Correction (Fallback OCR & Handwriting)
-  -> Classification: Groq LLM generates structured JSON metadata
+  -> Classification: LLM generates structured JSON metadata
   -> Vectorization: sentence-transformers/all-MiniLM-L6-v2
   -> Storage: ChromaDB
 
@@ -29,9 +29,15 @@ The system is decoupled into a **Next.js (TypeScript)** frontend and a **FastAPI
 [Next.js Chat UI] -> JSON Request -> [FastAPI /api/chat]
   -> LangGraph Orchestrator (Retrieve -> Synthesize)
   -> ChromaDB Semantic Search (Similarity)
-  -> Groq Llama 3.1 8B Synthesis (Strictly Grounded, No Hallucination)
+  -> LLM Synthesis (Strictly Grounded, No Hallucination)
   -> Output: Answer string + structured inline citations
   -> UI Render: Clickable thumbnails served securely via /api/pages/{image}
+
+LLM ROUTING (backend/app/core/llm.py) — every LLM call above:
+  Groq (openai/gpt-oss-20b; vision: qwen/qwen3.8-27b preview)
+    -> up to 3 attempts with backoff
+    -> Gemini fallback (gemini-3.8-flash)
+  Model names are env-configurable, so deprecations need no code change.
 ```
 
 ---
@@ -39,7 +45,7 @@ The system is decoupled into a **Next.js (TypeScript)** frontend and a **FastAPI
 ## ✨ Core Features & Evaluation Criteria Met
 
 ### 1. Advanced Document Parser (Tables & Scans)
-- **Smart Routing**: Instead of relying on one parser, the system intelligently routes pages. Digital text uses `PyMuPDF`. Scanned images and complex tables are routed to a Multimodal Vision Model (`llama-3.2-90b-vision-preview`), which expertly preserves structure as Markdown tables rather than flat jumbled text.
+- **Smart Routing**: Instead of relying on one parser, the system intelligently routes pages. Digital text uses `PyMuPDF`. Scanned images and complex tables are routed to a multimodal vision LLM (Groq, with Gemini fallback), which expertly preserves structure as Markdown tables rather than flat jumbled text.
 - **Thumbnails**: Every page is rasterized into a JPEG thumbnail for visual citation backing.
 
 ### 2. Multi-Dimensional JSON Classifier
@@ -101,7 +107,7 @@ sudo apt-get install -y libgl1 libglib2.0-0 poppler-utils libmagic1
 cd backend
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # runtime deps + pytest
 cp .env.example .env
 ```
 
@@ -120,9 +126,10 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 > pip install -r requirements.txt
 > ```
 
-Fill in `backend/.env`:
+Fill in `backend/.env` (see `backend/.env.example` for all options):
 ```env
-GROQ_API_KEY=your-groq-api-key
+GROQ_API_KEY=your-groq-api-key          # primary LLM
+GEMINI_API_KEY=your-gemini-api-key      # fallback LLM (used after 3 failed Groq attempts)
 API_SECRET_KEY=a-secure-random-string
 ENCRYPTION_KEY=the-fernet-key-from-above
 UPLOAD_DIR=./data/raw_docs
@@ -136,7 +143,12 @@ Start the Backend Server:
 ```bash
 uvicorn app.main:app --reload
 ```
-*(The backend will automatically index the 5 sample documents into ChromaDB on first startup).*
+*(The backend indexes the sample documents into ChromaDB in the background on first startup; `GET /health` shows progress.)*
+
+Run the tests (Linux/macOS/WSL — `python-magic` needs `libmagic`):
+```bash
+python -m pytest -q
+```
 
 ### 3. Frontend Setup
 ```bash
@@ -165,12 +177,7 @@ npm run dev
 
 ## 🌍 Production Deployment
 
-Detailed step-by-step instructions for deploying this project can be found in the [DEPLOY.md](./DEPLOY.md) file. 
+Step-by-step instructions: [DEPLOY.md](./DEPLOY.md).
 
-### Backend Architecture (Hugging Face Spaces)
-The backend is deployed using **Hugging Face Spaces** (Docker SDK). 
-**Reasoning:** The backend utilizes heavy system-level libraries (OpenCV, PyMuPDF) and local AI models (`python-doctr`, `sentence-transformers`) that require substantial memory to run efficiently. Traditional free-tier platforms (like Render or Heroku) impose strict 512MB RAM limits, which would instantly OOM (Out Of Memory) crash during document parsing. Hugging Face Spaces generously provides 16GB of RAM and 2 vCPUs completely for free, making it the perfect environment for this AI-heavy workload.
-
-### Frontend Architecture (Vercel)
-The frontend is deployed using **Vercel**.
-**Reasoning:** Vercel is the creator of Next.js and provides the absolute best, zero-config hosting environment for Next.js applications, offering seamless CI/CD, edge routing, and optimal performance out of the box.
+- **Backend → Hugging Face Spaces (Docker).** The backend runs local PyTorch models (DocTR, TrOCR, sentence-transformers) and needs ~3–4 GB RAM; 512 MB free tiers (Render/Heroku) crash with out-of-memory errors. The free CPU Space gives 2 vCPU / 16 GB RAM. Its disk is ephemeral; use Railway with a volume (also in DEPLOY.md) if uploads must persist.
+- **Frontend → Vercel.** Zero-config Next.js hosting. The server-side API routes keep the backend secret out of the browser; set `APP_PASSWORD` to put the site behind a login.

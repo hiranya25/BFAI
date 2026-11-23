@@ -26,8 +26,8 @@ export function DatabaseSidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
       if (!res.ok) throw new Error("Failed to fetch documents");
       const data = await res.json();
       setDocuments(data.documents);
-    } catch (err: any) {
-      setError(err.message || "An error occurred");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -35,6 +35,8 @@ export function DatabaseSidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
 
   useEffect(() => {
     if (isOpen) {
+      // Refresh the list each time the sidebar opens.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchDocs();
     }
   }, [isOpen]);
@@ -47,8 +49,8 @@ export function DatabaseSidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
       const res = await fetch(`/api/documents/${docId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete");
       setDocuments(prev => prev.filter(d => d.doc_id !== docId));
-    } catch (err: any) {
-      alert(err.message || "Failed to delete document");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to delete document");
     } finally {
       setDeletingId(null);
     }

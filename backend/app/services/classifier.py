@@ -1,13 +1,9 @@
 import json
-import os
-from groq import Groq
+import logging
 
-from app.core.config import get_settings
+from app.core.llm import complete
 
-settings = get_settings()
-
-# Initialize Groq client
-client = Groq(api_key=settings.groq_api_key)
+logger = logging.getLogger(__name__)
 
 CLASSIFICATION_SCHEMA = {
     "doc_type": "invoice | report | contract | form | letter | research | manual | other",
@@ -105,23 +101,14 @@ Document text sample:
 {sample_text[:3000]}"""
 
     try:
-        completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_message}
-            ],
-            response_format={"type": "json_object"},
-            temperature=0,
-        )
-        
-        raw = completion.choices[0].message.content
+        raw = complete("classify", user_message, system=SYSTEM_PROMPT, json_mode=True)
+        raw = raw.strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
                 raw = raw[4:]
-        
+
         return _normalize_classification(json.loads(raw), pages, filename)
     except Exception as e:
-        print(f"Classification error: {e}")
+        logger.warning("Classification failed for %s: %s: %s", filename, type(e).__name__, e)
         return _default_classification(pages, filename, "Classification failed; defaulting to internal.")

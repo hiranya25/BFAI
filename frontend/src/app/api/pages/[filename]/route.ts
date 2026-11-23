@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest, context: { params: Promise<{ filename: string }> }) {
+export async function GET(_request: NextRequest, context: { params: Promise<{ filename: string }> }) {
   const { filename } = await context.params;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const apiSecret = process.env.API_SECRET_KEY;
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ fil
         "Cache-Control": "public, max-age=86400",
       },
     });
-  } catch (e) {
+  } catch {
     return new NextResponse("Proxy error", { status: 500 });
   }
 }

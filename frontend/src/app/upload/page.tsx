@@ -23,7 +23,6 @@ interface QueuedFile {
 }
 
 interface UploadEvent {
-  upload_index?: number;
   status: FileStatus;
   doc_type?: string;
   sensitivity?: string;
@@ -37,11 +36,15 @@ const STATUS_LABELS: Record<FileStatus, string> = {
   validating: "Validating file signature...",
   saving: "Encrypting and saving...",
   parsing: "Extracting text and tables...",
-  classifying: "Llama 3.1 classifying...",
+  classifying: "AI classifying...",
   indexing: "Embedding into ChromaDB...",
   indexed: "Successfully Indexed",
   error: "Upload Failed",
 };
+
+// Must not exceed the backend MAX_UPLOAD_MB, nor ~4MB when the frontend runs on Vercel.
+const MAX_UPLOAD_MB = Number(process.env.NEXT_PUBLIC_MAX_UPLOAD_MB) || 4;
+const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
 function makeId() {
   return crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
@@ -75,52 +78,34 @@ export default function UploadPage() {
     maxFiles: 10,
   });
 
-  const handleUpload = async () => {
-    if (!files.length || uploading) return;
-    setUploadError(null);
-    setUploading(true);
-
-    const idleFiles = files.filter(f => f.status === "idle");
-    const queuedById = new Map(rawFiles.map(item => [item.id, item.file]));
-    const payload = idleFiles
-      .map((entry, uploadIndex) => ({ entry, file: queuedById.get(entry.id), uploadIndex }))
-      .filter((item): item is { entry: FileEntry; file: File; uploadIndex: number } => Boolean(item.file));
-
-    if (!payload.length) {
-      setUploadError("No pending files were found to upload.");
-      setUploading(false);
+  // Each file goes in its own request so every request stays under the hosting
+  // platform's body limit (Vercel functions reject bodies over ~4.5MB).
+  const uploadOne = async (entry: FileEntry, file: File) => {
+    if (file.size > MAX_UPLOAD_BYTES) {
+      updateFile(entry.id, { status: "error", message: `File is larger than the ${MAX_UPLOAD_MB}MB upload limit.` });
       return;
     }
 
     const formData = new FormData();
-    const indexToEntry = new Map<number, FileEntry>();
-    payload.forEach(({ entry, file, uploadIndex }) => {
-      formData.append("files", file);
-      indexToEntry.set(uploadIndex, entry);
-    });
+    formData.append("files", file);
 
     try {
-      const response = await fetch(`/api/upload`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(`/api/upload`, { method: "POST", body: formData });
 
-      if (!response.ok) {
-        setUploadError(`Upload failed with status ${response.status}.`);
-        payload.forEach(({ entry }) => updateFile(entry.id, { status: "error", message: "Upload request failed." }));
-        setUploading(false);
-        return;
-      }
-
-      if (!response.body) {
-        setUploadError("Upload response did not include a progress stream.");
-        setUploading(false);
+      if (!response.ok || !response.body) {
+        const message = response.status === 413
+          ? `File is larger than the hosting upload limit (${MAX_UPLOAD_MB}MB).`
+          : response.status === 429
+            ? "Too many uploads right now. Wait a minute and try again."
+            : `Upload request failed (${response.status}).`;
+        updateFile(entry.id, { status: "error", message });
         return;
       }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
+      let finished = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -136,25 +121,48 @@ export default function UploadPage() {
 
           try {
             const event = JSON.parse(line.slice(6)) as UploadEvent;
-            const entry = typeof event.upload_index === "number" ? indexToEntry.get(event.upload_index) : undefined;
-            if (entry) {
-              updateFile(entry.id, {
-                status: event.status,
-                docType: event.doc_type,
-                sensitivity: event.sensitivity,
-                summary: event.summary,
-                pageCount: event.page_count,
-                message: event.message,
-              });
-            }
+            if (event.status === "indexed" || event.status === "error") finished = true;
+            updateFile(entry.id, {
+              status: event.status,
+              docType: event.doc_type,
+              sensitivity: event.sensitivity,
+              summary: event.summary,
+              pageCount: event.page_count,
+              message: event.message,
+            });
           } catch {
             // Ignore malformed SSE frames; the next valid frame will update state.
           }
         }
       }
+
+      if (!finished) {
+        updateFile(entry.id, { status: "error", message: "Connection closed before processing finished. Check the knowledge base; the document may still be indexing." });
+      }
     } catch {
-      setUploadError("Could not reach the backend upload service.");
-      payload.forEach(({ entry }) => updateFile(entry.id, { status: "error", message: "Backend unavailable." }));
+      updateFile(entry.id, { status: "error", message: "Could not reach the backend upload service." });
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!files.length || uploading) return;
+    setUploadError(null);
+    setUploading(true);
+
+    const queuedById = new Map(rawFiles.map(item => [item.id, item.file]));
+    const payload = files
+      .filter(f => f.status === "idle")
+      .map(entry => ({ entry, file: queuedById.get(entry.id) }))
+      .filter((item): item is { entry: FileEntry; file: File } => Boolean(item.file));
+
+    if (!payload.length) {
+      setUploadError("No pending files were found to upload.");
+      setUploading(false);
+      return;
+    }
+
+    for (const { entry, file } of payload) {
+      await uploadOne(entry, file);
     }
     setUploading(false);
   };
@@ -177,7 +185,7 @@ export default function UploadPage() {
           <p className="text-lg text-slate-300 font-medium mb-2">
             {isDragActive ? "Drop files to encrypt & upload" : "Drag & drop files here"}
           </p>
-          <p className="text-sm text-slate-500">Supports PDF, TXT, JPG, PNG up to 20MB</p>
+          <p className="text-sm text-slate-500">Supports PDF, TXT, JPG, PNG up to {MAX_UPLOAD_MB}MB each</p>
           
           <AnimatePresence>
             {isDragActive && (

@@ -58,7 +58,7 @@ async def process_single_file(filename: str, content: bytes, doc_id: str, upload
         save_file(content, doc_id, UPLOAD_DIR)
 
         yield event("parsing")
-        # The parser tools (camelot, pdfplumber) require an unencrypted file path on disk.
+        # The parsers (PyMuPDF, pdf2image) require an unencrypted file path on disk.
         # We write a temporary decrypted file, parse it, and then securely delete it.
         ext = Path(filename).suffix or ".pdf"
         tmp_path = UPLOAD_DIR / f"{doc_id}{ext}"
@@ -96,7 +96,9 @@ async def process_single_file(filename: str, content: bytes, doc_id: str, upload
 
 
 @router.post("/upload")
-@limiter.limit("10/minute")
+# Per client IP. Behind the Vercel proxy all users share a few egress IPs, and the
+# frontend sends one file per request, so this is a global-ish budget.
+@limiter.limit("30/minute")
 async def upload_files(
     request: Request,
     files: List[UploadFile] = File(...),
@@ -141,9 +143,9 @@ async def get_page_image(
 ):
     """Serve page thumbnail. Auth required."""
     from fastapi.responses import FileResponse
-    from app.core.security import API_SECRET
+    from app.core.security import api_key_matches
 
-    if (x_api_key or key) != API_SECRET:
+    if not api_key_matches(x_api_key or key):
         raise HTTPException(status_code=401, detail="Invalid API key")
 
     # Security: prevent path traversal

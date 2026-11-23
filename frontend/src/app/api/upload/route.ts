@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// OCR + classification of a scanned document can take minutes; the progress stream stays open the whole time.
+// 300s is the Vercel Hobby maximum (Fluid compute).
+export const maxDuration = 300;
+export const dynamic = "force-dynamic";
+
 function apiConfig() {
   return {
     apiUrl: process.env.NEXT_PUBLIC_API_URL,

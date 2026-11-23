@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 function apiConfig() {
   return {
@@ -26,7 +26,8 @@ export async function GET() {
       status: res.status,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (err: any) {
-    return new NextResponse(JSON.stringify({ error: err.message || "Proxy error" }), { status: 502 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Proxy error";
+    return new NextResponse(JSON.stringify({ error: message }), { status: 502 });
   }
 }

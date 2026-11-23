@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Retrieval + up to 3 Groq attempts + Gemini fallback.
+// 300s is the Vercel Hobby maximum (Fluid compute).
+export const maxDuration = 120;
+export const dynamic = "force-dynamic";
+
 function apiConfig() {
   return {
     apiUrl: process.env.NEXT_PUBLIC_API_URL,

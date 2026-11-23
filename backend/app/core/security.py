@@ -1,3 +1,5 @@
+import hmac
+
 import magic  # python-magic for real MIME detection
 from pathlib import Path
 from typing import Optional
@@ -21,8 +23,13 @@ ALLOWED_MIMES = {
 API_SECRET = settings.api_secret_key
 
 
+def api_key_matches(candidate: str | None) -> bool:
+    """Constant-time comparison to avoid leaking the secret via timing."""
+    return bool(candidate) and hmac.compare_digest(candidate.encode(), API_SECRET.encode())
+
+
 def validate_api_key(x_api_key: str = Header(...)):
-    if x_api_key != API_SECRET:
+    if not api_key_matches(x_api_key):
         raise HTTPException(status_code=401, detail="Invalid API key")
     return x_api_key
 

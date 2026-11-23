@@ -13,17 +13,14 @@ from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langgraph.graph import StateGraph, END
-from groq import Groq
 
 from app.core.config import get_settings
+from app.core.llm import complete
 
 settings = get_settings()
 CHROMA_DIR = settings.chroma_dir
 MAX_RETRIEVAL_DISTANCE = 2.0
 logger = logging.getLogger(__name__)
-
-# Initialize Groq client
-client = Groq(api_key=settings.groq_api_key)
 
 _vectorstore = None
 
@@ -225,9 +222,7 @@ Rules:
     for m in state["conversation_history"][-4:]:
         messages_text += f"{m['role'].capitalize()}: {m['content']}\n"
 
-    prompt = f"""{system}
-
-Conversation History:
+    prompt = f"""Conversation History:
 {messages_text}
 
 Context from documents:
@@ -240,16 +235,8 @@ Question: {state['query']}
         llm_start = perf_counter()
         logger.info("RAG STAGE 6 LLM synthesis started chunks=%s prompt_chars=%s", len(chunks), len(prompt))
         
-        completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0,
-        )
-        answer = completion.choices[0].message.content
-        
+        answer = complete("rag_answer", prompt, system=system)
+
         if not answer:
             raise RuntimeError("LLM returned an empty answer.")
         logger.info("RAG STAGE 6 LLM synthesis completed elapsed_ms=%.1f", (perf_counter() - llm_start) * 1000)
